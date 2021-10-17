@@ -6,7 +6,7 @@
 
 ![](https://raw.githubusercontent.com/liuyunhaozz/image/main/img/1%7E%7D2M%244CJ%7EP8NO7L%7E%25RV%40%25A.png)
 
-问题在于点选了 5 后下面的 6 也会打勾
+问题在于点选了 4 后下面的 5 也会打勾
 
 估计是 `checkbox` 的值对 `v-for` 有影响
 
