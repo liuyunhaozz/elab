@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ToDoList</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-size: 20px;
+        }
+        header {
+            height: 80px;
+            background: rgb(117, 107, 107);
+            background: rgba(23, 212, 165, 0.98);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: large;
+        }
+        #header-section {
+            display: flex;
+            justify-content: space-around;
+        }
+        section {
+            margin: 0 auto;
+        }
+        label {
+            width: 100px;
+            line-height: 50px;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+        header input {
+            width: 65%;
+            height: 24px;
+            margin-top: 10px;
+            text-indent: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.24),0 1px 6px rgba(0, 0, 0, 0.45) inset;
+            border: none;
+        }
+        input:focus {
+            outline-width: 0;
+        }
+        header button {
+            margin-top: 12px;
+            width: 70px;
+            height: 26px;
+            background-color: rgb(245, 212, 212);
+            border: rgb(233, 206, 206);
+            border-radius: 5px;
+            outline: none;
+        }
+        img {
+            height: 22px;
+            width: 22px;
+            float: right;
+            margin-top: 4px;
+            cursor: pointer;
+        }
+        h2 {
+            position: relative;
+        }
+        span {
+            display: inline-block;
+            padding: 0 5px;
+            height: 20px;
+            border-radius: 20px;
+            line-height: 22px;
+            text-align: center;
+            color: #000;
+            font-size: 14px;
+        }
+        ol,ul {
+            padding: 0;
+            list-style: none;
+        }
+        li input {
+            position: absolute;
+            top: 2px;
+            left: 10px;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+        }
+        p {
+            margin: 0;
+        }
+        li {
+            height: 32px;
+            line-height: 32px;
+            background: #fff;
+            position: relative;
+            margin-bottom: 10px;
+            padding: 0 45px;
+            border-radius: 3px;
+            border-left: 5px solid #629a9c;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+        }
+        #doneList li {
+            border-left: 5px solid #999;
+            opacity: 0.5;
+        }
+        @media screen and (max-device-width: 620px) {
+            section {
+                width: 96%;
+                padding: 0 2%;
+            }
+        }
+        @media screen and (min-width: 620px) {
+            section {
+                width: 600px;
+                padding: 0 10px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+    <header>
+        <section id="header-section">
+            <label for="title">ToDoList</label>
+            <input type="text" id="title" name="title" placeholder="请输入ToDo" autocomplete="off"></input>
+            <button id="add-btn">添加</button>
+        </section>
+    </header>
+    <main>
+        <section id="content">
+            <h1>正在进行 <span id="todoCount"></span></h1>
+            <ul id="todoList"></ul>
+            <h1>已经完成 <span id="doneCount"></span></h1>
+            <ul id="doneList"></ul>
+        </section>
+    </main>
+    <script>
+        let data = {
+            todoArr: [],
+            doneArr: []
+        };
+        function main() {
+        // 存储在 localStorage 的数据可以长期保留，如果用户主动清空浏览器缓存，数据也将清空
+        let storage = localStorage.getItem("todo");
+        if (storage !== null) {
+            data = JSON.parse(storage);
+            render(data);
+        }
+        let addBtn = document.getElementById("add-btn");
+        let titleInput = document.getElementById("title");
+        // 为按钮增加 click 事件监听
+        addBtn.addEventListener("click", (event) => {
+            if (titleInput.value) {
+            data.todoArr.push(titleInput.value);
+            render(data);
+            titleInput.value = "";
+            }
+        });
+        // 获取容器 DOM
+        let contentDom = document.getElementById("content");
+        // 通过事件代理的方式，监听 input 派发的 change 事件
+        contentDom.addEventListener("change", (event) => {
+            let target = event.target;
+            if (target.dataset.from === "todo" && target.tagName === "INPUT") {
+                let index = +target.dataset.index;
+                // 删除这一项
+                let value = data.todoArr.splice(index, 1)[0];
+                // 添加到 done
+                data.doneArr.push(value);
+                render(data);
+            } else if (target.dataset.from === "done" && target.tagName === "INPUT") {
+                let index = +target.dataset.index;
+                let value = data.doneArr.splice(index, 1)[0];
+                data.todoArr.push(value);
+                render(data);
+            }
+        });
+
+        // 通过事件代理的方式，监听 img 派发的 click 事件
+        contentDom.addEventListener("click", (event) => {
+            let target = event.target;
+            if (target.dataset.from === "todo" && target.tagName === "IMG") {
+                let index = +target.dataset.index;
+                data.todoArr.splice(index, 1);
+                render(data);
+            } else if (target.dataset.from === "done" && target.tagName === "IMG") {
+                let index = +target.dataset.index;
+                data.doneArr.splice(index, 1);
+                render(data);
+            }
+        });
+        }
+
+        let imgSrc ="https://z3.ax1x.com/2021/07/16/WMOqYQ.png";
+        function render(data) {
+            localStorage.setItem("todo", JSON.stringify(data));
+
+            // 先清空内容
+            let todoContainer = document.getElementById("todoList");
+            todoContainer.innerHTML = "";
+            let doneContainer = document.getElementById("doneList");
+            doneContainer.innerHTML = "";
+
+            // 以下展示两种循环插入 DOM 的方式
+
+            // 第一种方式是直接拼接 HTML
+            let todoArr = data.todoArr;
+            let todoHTML = "";
+            for (let i = 0, len = todoArr.length; i < len; i++) {
+                todoHTML += `
+                <li>
+                <input type="checkbox" data-from="todo" data-index="${i}"></input>
+                <span>${todoArr[i]}</span>
+                <img src="${imgSrc}" data-from="todo" data-index="${i}"></img>
+                </li>`;
+            }
+            todoContainer.innerHTML = todoHTML;
+
+            // 第二种方式是通过 DOM API
+            let doneArr = data.doneArr;
+            for (let i = 0, len = doneArr.length; i < len; i++) {
+                let li = document.createElement("li");
+                let input = document.createElement("input");
+                input.type = "checkbox";
+                input.setAttribute("checked", "");
+                input.dataset.index = i;
+                input.dataset.from = "done";
+                let span = document.createElement("span");
+                span.textContent = doneArr[i];
+                let img = document.createElement("img");
+                img.src = imgSrc;
+                img.dataset.index = i;
+                img.dataset.from = "done";
+                li.appendChild(input);
+                li.appendChild(span);
+                li.appendChild(img);
+                doneContainer.appendChild(li);
+            }
+        }
+        window.onload = main;
+    </script>
+</body>
+
+</html>
